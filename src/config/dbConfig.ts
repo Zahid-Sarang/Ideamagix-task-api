@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
-import { DB_URL } from ".";
+import { Config } from ".";
 import logger from "./logger";
 
 async function DbConnect() {
     try {
-        const URL = DB_URL as string; // Assuming DB_URL is a required environment variable
+        const URL = Config.DB_URL as string; // Assuming DB_URL is a required environment variable
 
         // Database connection
         await mongoose.connect(URL);
