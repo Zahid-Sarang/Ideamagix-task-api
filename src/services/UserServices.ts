@@ -27,4 +27,12 @@ export class UserService {
             throw error;
         }
     }
+
+    async findByEmailWithPassword(email: string) {
+        return await User.findOne({ email: email });
+    }
+
+    async findById(id: string) {
+        return await User.findById(id).select(["-password", "-__v"]);
+    }
 }

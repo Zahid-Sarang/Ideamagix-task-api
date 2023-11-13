@@ -1,17 +1,40 @@
 import { NextFunction, Response } from "express";
 import { validationResult } from "express-validator";
+import createHttpError from "http-errors";
 import { JwtPayload } from "jsonwebtoken";
 import { Logger } from "winston";
+import { CredentialService } from "../services/CredentialService";
 import { TokenService } from "../services/TokenService";
 import { UserService } from "../services/UserServices";
-import { RegisterUserRequest } from "../types";
+import { AuthRequest, RegisterUserRequest } from "../types";
 
 export class AuthController {
     constructor(
         private userService: UserService,
         private logger: Logger,
         private tokenService: TokenService,
+        private credentialsService: CredentialService,
     ) {}
+
+    private generateCookies(
+        res: Response,
+        accessToken: string,
+        refreshToken: string,
+    ) {
+        res.cookie("accessToken", accessToken, {
+            domain: "localhost",
+            sameSite: "strict",
+            maxAge: 1000 * 60 * 60,
+            httpOnly: true,
+        });
+
+        res.cookie("refreshToken", refreshToken, {
+            domain: "localhost",
+            sameSite: "strict",
+            maxAge: 1000 * 60 * 60 * 24 * 365,
+            httpOnly: true,
+        });
+    }
 
     async register(
         req: RegisterUserRequest,
@@ -42,22 +65,80 @@ export class AuthController {
                 this.tokenService.generateAccessToken(payload);
 
             // send httpOnly cookies
-            res.cookie("accessToken", accessToken, {
-                domain: "localhost",
-                sameSite: "strict",
-                maxAge: 1000 * 60 * 60,
-                httpOnly: true,
-            });
+            this.generateCookies(res, accessToken, refreshToken);
 
-            res.cookie("refreshToken", refreshToken, {
-                domain: "localhost",
-                sameSite: "strict",
-                maxAge: 1000 * 60 * 60 * 24 * 365,
-                httpOnly: true,
-            });
             res.status(201).json({ user });
         } catch (error) {
             next(error);
+        }
+    }
+
+    async login(req: RegisterUserRequest, res: Response, next: NextFunction) {
+        // validation
+        const validationError = validationResult(req);
+        if (!validationError.isEmpty()) {
+            return res.status(400).json({ errors: validationError.array() });
+        }
+        const { email, password } = req.body;
+        this.logger.debug("New request to register a user:", {
+            email,
+            password: "******",
+        });
+
+        try {
+            // check user exist in database or not
+            const user = await this.userService.findByEmailWithPassword(email);
+            if (!user) {
+                const error = createHttpError(
+                    400,
+                    "Email and password dosn't match!",
+                );
+                next(error);
+                return;
+            }
+
+            // compare password
+            const passwordMatch = await this.credentialsService.comparePassword(
+                password,
+                user.password,
+            );
+            if (!passwordMatch) {
+                const error = createHttpError(
+                    400,
+                    "Email and password dosn't match!",
+                );
+                next(error);
+                return;
+            }
+            // generate token
+            const payload: JwtPayload = {
+                sub: String(user.id),
+                role: user.role,
+            };
+            // generate accessToken
+            const { accessToken, refreshToken } =
+                this.tokenService.generateAccessToken(payload);
+
+            // send httpOnly cookies
+            this.generateCookies(res, accessToken, refreshToken);
+            res.json({ id: user._id });
+        } catch (err) {
+            next(err);
+            return;
+        }
+    }
+
+    async self(req: AuthRequest, res: Response, next: NextFunction) {
+        try {
+            const userInfo = await this.userService.findById(req.auth.sub);
+            if (!userInfo) {
+                // Handle the case where the user is not found
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            res.json(userInfo);
+        } catch (err) {
+            next(err);
         }
     }
 }
