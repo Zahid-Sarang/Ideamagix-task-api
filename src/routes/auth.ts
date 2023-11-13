@@ -9,10 +9,10 @@ const router = express.Router();
 const userService = new UserService();
 const authController = new AuthController(userService);
 router.post(
-  "/register",
-  registerValidators,
-  (req: RegisterUserRequest, res: Response, next: NextFunction) =>
-    authController.register(req, res, next),
+    "/register",
+    registerValidators,
+    (req: RegisterUserRequest, res: Response, next: NextFunction) =>
+        authController.register(req, res, next),
 );
 
 export default router;
