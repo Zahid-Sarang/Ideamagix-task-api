@@ -52,6 +52,7 @@ export class AuthController {
                 email,
                 password,
                 role: "admin",
+                // role: "instructor",
             });
             this.logger.info("User has been registered");
 
@@ -61,9 +62,17 @@ export class AuthController {
                 role: user.role,
             };
             // generate accessToken
-            const { accessToken, refreshToken } =
-                this.tokenService.generateAccessToken(payload);
+            const accessToken = this.tokenService.generateAccessToken(payload);
 
+            // store refresh token
+            const newRefreshToken =
+                await this.tokenService.storeRefreshToken(user);
+
+            // generate accessToken
+            const refreshToken = this.tokenService.generateRefreshToken({
+                ...payload,
+                id: String(newRefreshToken._id),
+            });
             // send httpOnly cookies
             this.generateCookies(res, accessToken, refreshToken);
 
@@ -116,8 +125,17 @@ export class AuthController {
                 role: user.role,
             };
             // generate accessToken
-            const { accessToken, refreshToken } =
-                this.tokenService.generateAccessToken(payload);
+            const accessToken = this.tokenService.generateAccessToken(payload);
+
+            // store refresh token
+            const newRefreshToken =
+                await this.tokenService.storeRefreshToken(user);
+
+            // generate accessToken
+            const refreshToken = this.tokenService.generateRefreshToken({
+                ...payload,
+                id: String(newRefreshToken._id),
+            });
 
             // send httpOnly cookies
             this.generateCookies(res, accessToken, refreshToken);
@@ -137,6 +155,45 @@ export class AuthController {
             }
 
             res.json(userInfo);
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async refresh(req: AuthRequest, res: Response, next: NextFunction) {
+        try {
+            const payload: JwtPayload = {
+                sub: req.auth.sub,
+                role: req.auth.role,
+            };
+
+            const user = await this.userService.findById(req.auth.sub);
+            if (!user) {
+                const error = createHttpError(
+                    400,
+                    "User with token could not find",
+                );
+                next(error);
+                return;
+            }
+            // generate accessToken
+            const accessToken = this.tokenService.generateAccessToken(payload);
+
+            // store refresh token
+            const newRefreshToken =
+                await this.tokenService.storeRefreshToken(user);
+
+            // generate accessToken
+            const refreshToken = this.tokenService.generateRefreshToken({
+                ...payload,
+                id: String(newRefreshToken._id),
+            });
+
+            // delete old refresh token
+            await this.tokenService.deleteRefreshToken(req.auth.id as string);
+
+            this.generateCookies(res, accessToken, refreshToken);
+            res.json({ id: user._id });
         } catch (err) {
             next(err);
         }

@@ -8,6 +8,7 @@ import loginValidators from "../validators/login-validators";
 import registerValidators from "../validators/register-validators";
 import { CredentialService } from "../services/CredentialService";
 import authenticate from "../middleware/authenticate";
+import validateRefreshToken from "../middleware/validateRefreshToken";
 
 const router = express.Router();
 
@@ -41,4 +42,10 @@ router.get(
         authController.self(req as AuthRequest, res, next),
 );
 
+router.post(
+    "/refresh",
+    validateRefreshToken,
+    (req: Request, res: Response, next: NextFunction) =>
+        authController.refresh(req as AuthRequest, res, next),
+);
 export default router;
