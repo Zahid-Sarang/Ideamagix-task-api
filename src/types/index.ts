@@ -36,3 +36,14 @@ export interface IUserDto {
     createdAt: Date;
     [key: string]: unknown; // Allow additional properties
 }
+
+export interface CourseData {
+    name: string;
+    level: string;
+    description: string;
+    filePath: string;
+}
+
+export interface CourseRegisterRequest extends Request {
+    body: CourseData;
+}

@@ -1,18 +1,40 @@
-import { Request, Response, NextFunction } from "express";
-import { validationResult } from "express-validator";
+import { Response, NextFunction } from "express";
+import createHttpError from "http-errors";
+import { CourseService } from "../services/CourseService";
+import { CourseRegisterRequest } from "../types";
+import { handleMultiPartData } from "../utils/fileUpload";
 
 export class CourseController {
-    constructor() {}
-    async createCourse(req: Request, res: Response, next: NextFunction) {
-        // Validation
-        const validationError = validationResult(req);
-        if (!validationError.isEmpty()) {
-            return res.status(400).json({ error: validationError.array() });
-        }
-        try {
-            res.status(201).json({ message: "Course created!" });
-        } catch (err) {
-            next(err);
-        }
+    constructor(private courseService: CourseService) {}
+    async createCourse(
+        req: CourseRegisterRequest,
+        res: Response,
+        next: NextFunction,
+    ) {
+        handleMultiPartData(req, res, async (err) => {
+            if (err) {
+                return next(err);
+            }
+            const filePath = req.file?.path;
+            const { name, level, description } = req.body;
+            // Validation;
+
+            if (!name || !level || !description || !filePath) {
+                const error = createHttpError(400, "All files are required!");
+                return next(error);
+            }
+            let course;
+            try {
+                course = await this.courseService.createCourse({
+                    name,
+                    level,
+                    description,
+                    filePath,
+                });
+            } catch (err) {
+                next(err);
+            }
+            res.status(201).json(course);
+        });
     }
 }
