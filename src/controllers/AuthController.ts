@@ -1,4 +1,4 @@
-import { NextFunction, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { validationResult } from "express-validator";
 import createHttpError from "http-errors";
 import { JwtPayload } from "jsonwebtoken";
@@ -194,6 +194,15 @@ export class AuthController {
 
             this.generateCookies(res, accessToken, refreshToken);
             res.json({ id: user._id });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async getUser(req: Request, res: Response, next: NextFunction) {
+        try {
+            const usersList = await this.userService.getUsersList();
+            res.json(usersList);
         } catch (err) {
             next(err);
         }

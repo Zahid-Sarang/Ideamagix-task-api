@@ -35,4 +35,8 @@ export class UserService {
     async findById(id: string) {
         return await User.findById(id).select(["-password", "-__v"]);
     }
+
+    async getUsersList() {
+        return await User.find().select(["-password", "-__v"]);
+    }
 }

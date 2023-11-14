@@ -9,6 +9,7 @@ import registerValidators from "../validators/register-validators";
 import { CredentialService } from "../services/CredentialService";
 import authenticate from "../middleware/authenticate";
 import validateRefreshToken from "../middleware/validateRefreshToken";
+import { canAccess } from "../middleware/canAccess";
 
 const router = express.Router();
 
@@ -48,4 +49,13 @@ router.post(
     (req: Request, res: Response, next: NextFunction) =>
         authController.refresh(req as AuthRequest, res, next),
 );
+
+router.get(
+    "/getUsers",
+    authenticate,
+    canAccess(["admin"]),
+    (req: Request, res: Response, next: NextFunction) =>
+        authController.getUser(req, res, next),
+);
+
 export default router;
