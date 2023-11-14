@@ -1,6 +1,5 @@
 import { Response, Request, NextFunction } from "express";
 import createHttpError from "http-errors";
-
 import { CourseService } from "../services/CourseService";
 import { CourseRegisterRequest } from "../types";
 import { handleMultiPartData } from "../utils/fileUpload";

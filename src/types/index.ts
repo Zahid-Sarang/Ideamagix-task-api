@@ -47,3 +47,13 @@ export interface CourseData {
 export interface CourseRegisterRequest extends Request {
     body: CourseData;
 }
+
+export interface LectureData {
+    date: string;
+    instructor: string;
+    course: string;
+}
+
+export interface LectureRegisterRequest extends Request {
+    body: LectureData;
+}

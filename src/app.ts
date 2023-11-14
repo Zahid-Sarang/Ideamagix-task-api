@@ -5,6 +5,7 @@ import { HttpError } from "http-errors";
 import logger from "./config/logger";
 import authRouter from "./routes/auth";
 import courseRouter from "./routes/course";
+import lectureRouter from "./routes/lecture";
 
 const app = express();
 app.use(express.urlencoded({ extended: false }));
@@ -16,6 +17,7 @@ app.get("/", async (req, res) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/courses", courseRouter);
+app.use("/api/lectures", lectureRouter);
 app.use("/src/uploads", express.static("src/uploads"));
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
