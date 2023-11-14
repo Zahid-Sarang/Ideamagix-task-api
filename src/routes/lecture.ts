@@ -20,4 +20,11 @@ router.post(
     (req: LectureRegisterRequest, res: Response, next: NextFunction) =>
         lectureController.addLecture(req, res, next),
 );
+router.get(
+    "/",
+    authenticate,
+    canAccess(["admin"]),
+    (req: LectureRegisterRequest, res: Response, next: NextFunction) =>
+        lectureController.getLectures(req, res, next),
+);
 export default router;

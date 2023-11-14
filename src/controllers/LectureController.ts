@@ -1,4 +1,4 @@
-import { NextFunction, Response } from "express";
+import { NextFunction, Response, Request } from "express";
 import { validationResult } from "express-validator";
 import { LectureService } from "../services/LectureService";
 import { LectureRegisterRequest } from "../types";
@@ -22,6 +22,15 @@ export class LectureController {
                 course,
             });
             res.status(201).json(lecture);
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async getLectures(req: Request, res: Response, next: NextFunction) {
+        try {
+            const lectures = await this.lectureService.getLectures();
+            res.json(lectures);
         } catch (err) {
             next(err);
         }

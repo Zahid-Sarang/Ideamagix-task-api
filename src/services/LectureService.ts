@@ -13,4 +13,12 @@ export class LectureService {
             throw error;
         }
     }
+    async getLectures() {
+        return await Lecture.find()
+            .populate({
+                path: "instructor",
+                select: "-password", // Exclude the password field
+            })
+            .populate("course");
+    }
 }

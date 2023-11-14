@@ -1,4 +1,5 @@
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import express, { NextFunction, Request, Response } from "express";
 import { HttpError } from "http-errors";
 
@@ -8,6 +9,11 @@ import courseRouter from "./routes/course";
 import lectureRouter from "./routes/lecture";
 
 const app = express();
+const corsOptions = {
+    credentials: true,
+    origin: "http://localhost:3000",
+};
+app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
