@@ -16,4 +16,11 @@ router.post(
         courseController.createCourse(req, res, next),
 );
 
+router.get(
+    "/",
+    authenticate,
+    canAccess(["admin"]),
+    (req: Request, res: Response, next: NextFunction) =>
+        courseController.getCourses(req, res, next),
+);
 export default router;

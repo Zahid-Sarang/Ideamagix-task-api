@@ -11,4 +11,8 @@ export class CourseService {
             image: filePath,
         });
     }
+
+    async getCourseList() {
+        return await Course.find();
+    }
 }

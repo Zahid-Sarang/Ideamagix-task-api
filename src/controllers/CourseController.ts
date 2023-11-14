@@ -1,5 +1,6 @@
-import { Response, NextFunction } from "express";
+import { Response, Request, NextFunction } from "express";
 import createHttpError from "http-errors";
+
 import { CourseService } from "../services/CourseService";
 import { CourseRegisterRequest } from "../types";
 import { handleMultiPartData } from "../utils/fileUpload";
@@ -36,5 +37,14 @@ export class CourseController {
             }
             res.status(201).json(course);
         });
+    }
+
+    async getCourses(req: Request, res: Response, next: NextFunction) {
+        try {
+            const course = await this.courseService.getCourseList();
+            res.json(course);
+        } catch (err) {
+            next(err);
+        }
     }
 }
